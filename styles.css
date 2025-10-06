@@ -1,0 +1,71 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+.app-header { padding: 16px; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.app-header h1 { margin: 0; font-size: 20px; }
+.app-clock { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: rgba(255,255,255,0.08); padding: 6px 10px; border-radius: 8px; }
+
+.container { max-width: 720px; margin: 24px auto; padding: 0 16px; }
+
+.topbar { margin-bottom: 16px; }
+.top-date-picker { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.top-date-picker input[type="date"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.top-date-label { font-weight: 600; color: #0f172a; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+.copybar { margin-top: 16px; }
+.copy-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.copy-row input[type="text"], .copy-row input[type="date"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.copy-go { padding: 8px 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 8px; cursor: pointer; }
+.copy-go:hover { background: #eef2f7; }
+.copy-toggle { padding: 8px 12px; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; }
+.copy-toggle[aria-expanded="true"] { background: #eff6ff; }
+.copy-panel { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; background: #fff; }
+.copy-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+.copy-days { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.copy-days li { display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; }
+
+.new-timer form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.new-timer input[type="text"],
+.new-timer input[type="number"] { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; min-width: 120px; }
+.new-timer button { padding: 10px 14px; border: 0; background: #2563eb; color: #fff; border-radius: 8px; cursor: pointer; }
+.new-timer button:hover { background: #1d4ed8; }
+
+.timers { margin-top: 24px; }
+.timers-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+
+.timer-item { display: grid; grid-template-rows: auto auto auto; gap: 10px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; box-shadow: 0 2px 6px rgba(2, 6, 23, 0.06); }
+.timer-name { font-weight: 600; color: #0f172a; }
+.timer-remaining { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color: #0f172a; }
+.timer-controls { display: flex; gap: 8px; margin-top: 4px; }
+.timer-controls button { padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; }
+.timer-controls button:hover { background: #eef2f7; }
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .app-header { padding: 12px; gap: 8px; }
+  .app-header h1 { font-size: 18px; }
+  .app-clock { padding: 4px 8px; font-size: 12px; }
+
+  .container { margin: 16px auto; padding: 0 12px; }
+
+  .top-date-picker { gap: 8px; }
+  .top-date-picker input[type="date"] { padding: 8px 10px; font-size: 14px; }
+  .top-date-label { font-size: 14px; }
+
+  .new-timer form { gap: 6px; }
+  .new-timer input[type="text"],
+  .new-timer input[type="number"] { min-width: 100px; flex: 1 1 auto; }
+  .new-timer button { width: 100%; }
+
+  .timers-list { grid-template-columns: 1fr; gap: 12px; }
+  .timer-item { padding: 12px; }
+  .timer-controls { flex-wrap: wrap; }
+  .timer-controls button { flex: 1 1 calc(50% - 4px); }
+
+  .copy-toggle, .copy-go { padding: 10px 12px; }
+  .copy-actions { flex-wrap: wrap; }
+  .copy-days { grid-template-columns: 1fr; }
+}
+
+

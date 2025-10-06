@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Task Timer App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1>Task Timer</h1>
+        <div class="app-clock" id="app-clock" aria-live="polite"></div>
+    </header>
+
+    <main class="container">
+        <section class="topbar" aria-label="Date selection">
+            <div class="top-date-picker">
+                <label for="top-date" class="sr-only">Choose date</label>
+                <input id="top-date" type="date" aria-label="Choose date">
+                <div id="top-date-label" class="top-date-label" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section class="new-timer">
+            <form id="new-timer-form" autocomplete="off">
+                <input id="timer-name" name="name" type="text" placeholder="Timer name" required>
+                <input id="timer-minutes" name="minutes" type="number" min="0" step="1" placeholder="Min" required>
+                <input id="timer-seconds" name="seconds" type="number" min="0" max="59" step="1" placeholder="Sec" required>
+                <button type="submit">Add Timer</button>
+            </form>
+        </section>
+
+        <section class="timers">
+            <ul id="timers-list" class="timers-list" aria-live="polite"></ul>
+            <div class="copybar" aria-label="Copy day timers">
+                <button id="copy-toggle" class="copy-toggle" aria-expanded="false" aria-controls="copy-panel">Copy to next 15 days</button>
+                <div id="copy-panel" class="copy-panel" hidden>
+                    <div class="copy-actions">
+                        <button id="copy-select-all" class="copy-go" type="button">Select all</button>
+                        <button id="copy-clear" class="copy-go" type="button">Clear</button>
+                        <button id="copy-go" class="copy-go" type="button">Copy</button>
+                    </div>
+                    <ul id="copy-days" class="copy-days" aria-label="Choose target dates"></ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
