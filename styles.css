@@ -41,6 +41,9 @@ html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe
 .timer-controls button { padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; }
 .timer-controls button:hover { background: #eef2f7; }
 
+/* Warning style for last minute */
+.timer-item.warning { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15) inset; }
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .app-header { padding: 12px; gap: 8px; }

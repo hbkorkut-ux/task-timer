@@ -16,7 +16,8 @@
 
 	/**
 	 * timersByDate maps dateKey (YYYY-MM-DD) -> Map<timerId, Timer>
-	 * @type {Map<string, Map<string, {id:string,dateKey:string,name:string,remainingMs:number,isRunning:boolean,intervalId:number|null,startedAt:number|null}>>}
+	 * Timer has originalMs for reset.
+	 * @type {Map<string, Map<string, {id:string,dateKey:string,name:string,originalMs:number,remainingMs:number,isRunning:boolean,intervalId:number|null,startedAt:number|null}>>}
 	 */
 	const timersByDate = new Map();
 
@@ -27,13 +28,13 @@
 	/** @type {number} */
 	let lastPersistedAtMs = 0;
 
-	const STORAGE_KEY = 'task-timer-app:v1';
+	const STORAGE_KEY = 'task-timer-app:v2';
 
 	function saveState() {
-		/** @type {{ selectedDateKey: string, timersByDate: Record<string, Array<{id:string,name:string,remainingMs:number}>> }} */
+		/** @type {{ selectedDateKey: string, timersByDate: Record<string, Array<{id:string,name:string,remainingMs:number,originalMs:number}>> }} */
 		const snapshot = { selectedDateKey, timersByDate: {} };
 		for (const [dateKey, map] of timersByDate.entries()) {
-			snapshot.timersByDate[dateKey] = Array.from(map.values()).map(t => ({ id: t.id, name: t.name, remainingMs: t.remainingMs }));
+			snapshot.timersByDate[dateKey] = Array.from(map.values()).map(t => ({ id: t.id, name: t.name, remainingMs: t.remainingMs, originalMs: t.originalMs }));
 		}
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
@@ -62,6 +63,7 @@
 						id,
 						dateKey,
 						name: String(t.name || ''),
+						originalMs: Math.max(0, Number(t.originalMs != null ? t.originalMs : (t.remainingMs || 0))),
 						remainingMs: Math.max(0, Number(t.remainingMs || 0)),
 						isRunning: false,
 						intervalId: null,
@@ -139,6 +141,25 @@
         setInterval(update, 1000);
     }
 
+    function playBeep() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioCtx();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.value = 880; // A5
+            g.gain.setValueAtTime(0.0001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+            o.connect(g).connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.45);
+        } catch (_) {
+            // ignore audio errors (e.g., autoplay blocked)
+        }
+    }
+
 	function createTimerElement(timer) {
         const li = document.createElement('li');
         li.className = 'timer-item';
@@ -168,7 +189,11 @@
         deleteBtn.textContent = 'Delete';
 		deleteBtn.addEventListener('click', () => deleteTimer(timer.id, timer.dateKey));
 
-        controls.append(startBtn, pauseBtn, deleteBtn);
+        const resetBtn = document.createElement('button');
+        resetBtn.textContent = 'Reset';
+        resetBtn.addEventListener('click', () => resetTimer(timer.id, timer.dateKey));
+
+        controls.append(startBtn, pauseBtn, deleteBtn, resetBtn);
         li.append(nameEl, timeEl, controls);
         return li;
     }
@@ -179,10 +204,13 @@
         if (existing) {
             const timeEl = existing.querySelector('.timer-remaining');
             if (timeEl) timeEl.textContent = formatTime(timer.remainingMs);
+            // toggle warning class for last minute
+            if (timer.remainingMs <= 60000 && timer.remainingMs > 0) existing.classList.add('warning'); else existing.classList.remove('warning');
             return existing;
         }
         const el = createTimerElement(timer);
 		list.prepend(el);
+        if (timer.remainingMs <= 60000 && timer.remainingMs > 0) el.classList.add('warning');
         return el;
     }
 
@@ -193,6 +221,7 @@
         if (!timer) return;
         const now = Date.now();
         const elapsed = now - (timer.startedAt || now);
+        const prevRemaining = timer.remainingMs;
         const newRemaining = timer.remainingMs - elapsed;
         timer.startedAt = now;
         timer.remainingMs = Math.max(0, newRemaining);
@@ -201,8 +230,9 @@
 			lastPersistedAtMs = now;
 			saveState();
 		}
-        if (timer.remainingMs <= 0) {
+        if (prevRemaining > 0 && timer.remainingMs <= 0) {
 			pauseTimer(timerId, dateKey);
+            playBeep();
         }
     }
 
@@ -230,6 +260,7 @@
             timer.intervalId = null;
         }
         renderTimer(timer);
+        saveState();
     }
 
 	function deleteTimer(timerId, dateKey) {
@@ -241,6 +272,18 @@
 		map.delete(timerId);
 		const el = list.querySelector(`li[data-id="${timerId}"]`);
         if (el) el.remove();
+        saveState();
+    }
+
+    function resetTimer(timerId, dateKey) {
+        const map = timersByDate.get(dateKey);
+        if (!map) return;
+        const timer = map.get(timerId);
+        if (!timer) return;
+        if (timer.isRunning) pauseTimer(timerId, dateKey);
+        timer.remainingMs = Math.max(0, timer.originalMs || 0);
+        timer.startedAt = null;
+        renderTimer(timer);
         saveState();
     }
 
@@ -296,10 +339,12 @@
             return;
         }
         const id = generateId();
-		const timer = {
+        const originalMs = totalMs;
+        const timer = {
             id,
 			dateKey: selectedDateKey,
             name,
+            originalMs,
             remainingMs: totalMs,
             isRunning: false,
             intervalId: null,
@@ -326,10 +371,11 @@
 		const toMap = getTimersMap(toKey);
 		for (const src of fromMap.values()) {
 			const id = generateId();
-			toMap.set(id, {
+            toMap.set(id, {
 				id,
 				dateKey: toKey,
 				name: src.name,
+                originalMs: src.originalMs || src.remainingMs,
 				remainingMs: src.remainingMs,
 				isRunning: false,
 				intervalId: null,
